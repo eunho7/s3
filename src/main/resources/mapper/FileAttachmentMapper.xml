@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.s3files.mapper.FileAttachmentMapper">
+
+    <resultMap id="FileAttachmentResultMap" type="com.example.s3files.entity.FileAttachment">
+        <id property="fileSeq" column="file_seq"/>
+        <result property="originalFileName" column="original_file_name"/>
+        <result property="storedFileName" column="stored_file_name"/>
+        <result property="s3Key" column="s3_key"/>
+        <result property="contentType" column="content_type"/>
+        <result property="fileSize" column="file_size"/>
+        <result property="useYn" column="use_yn"/>
+        <result property="createUser" column="create_user"/>
+        <result property="createDttm" column="create_dttm"/>
+        <result property="updateUser" column="update_user"/>
+        <result property="updateDttm" column="update_dttm"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.example.s3files.entity.FileAttachment" useGeneratedKeys="true" keyProperty="fileSeq">
+        INSERT INTO tb_file_attachment (
+            original_file_name,
+            stored_file_name,
+            s3_key,
+            content_type,
+            file_size,
+            use_yn,
+            create_user,
+            create_dttm,
+            update_user,
+            update_dttm
+        ) VALUES (
+            #{originalFileName},
+            #{storedFileName},
+            #{s3Key},
+            #{contentType},
+            #{fileSize},
+            #{useYn},
+            #{createUser},
+            #{createDttm},
+            #{updateUser},
+            #{updateDttm}
+        )
+    </insert>
+
+    <select id="findByFileSeq" resultMap="FileAttachmentResultMap">
+        SELECT *
+        FROM tb_file_attachment
+        WHERE file_seq = #{fileSeq}
+    </select>
+
+    <select id="findAll" resultMap="FileAttachmentResultMap">
+        SELECT *
+        FROM tb_file_attachment
+        <where>
+            <if test="useYn != null and useYn != ''">
+                use_yn = #{useYn}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    original_file_name LIKE CONCAT('%', #{keyword}, '%')
+                    OR stored_file_name LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+        </where>
+        ORDER BY file_seq DESC
+    </select>
+
+    <update id="updateMetadata" parameterType="com.example.s3files.entity.FileAttachment">
+        UPDATE tb_file_attachment
+        SET use_yn = #{useYn},
+            update_user = #{updateUser},
+            update_dttm = #{updateDttm}
+        WHERE file_seq = #{fileSeq}
+    </update>
+
+    <update id="deleteByFileSeq">
+        UPDATE tb_file_attachment
+        SET use_yn = 'N',
+            update_user = #{updateUser},
+            update_dttm = NOW()
+        WHERE file_seq = #{fileSeq}
+    </update>
+
+</mapper>
